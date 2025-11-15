@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"firebase.google.com/go/v4"
+	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/option"
 )
@@ -20,7 +20,7 @@ func NewClient(serviceAccountKeyPath string) *Client {
 
 	// 1. Create options using the path to the service account JSON
 	opt := option.WithCredentialsFile(serviceAccountKeyPath)
-	
+
 	// 2. Initialize the Firebase App
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {

@@ -9,26 +9,29 @@ import (
 
 // Config holds all application configuration settings.
 type Config struct {
-	// Firebase service account file path, used to initialize the Admin SDK.
-	FirebaseServiceKeyPath string `envconfig:"FIREBASE_SERVICE_KEY_PATH" required:"true"`
-	
+	// Path to the Firebase service account JSON file.
+	// Comes from .env: FIREBASE_SERVICE_KEY_JSON=./scripts/firebase-key.json
+	FirebaseServiceKeyJSON string `envconfig:"FIREBASE_SERVICE_KEY_JSON" required:"true"`
+
 	// Server settings (e.g., port)
 	Port string `envconfig:"PORT" default:"8080"`
 
 	// Supabase/Postgres connection string
-	DatabaseURL string `envconfig:"DATABASE_URL" required:"true"`
+	// You can leave this empty for now or set a placeholder in .env.
+	DatabaseURL string `envconfig:"DATABASE_URL" default:""`
 }
 
 // LoadConfig reads configuration from .env file and environment variables.
 func LoadConfig() *Config {
-	// Load .env file first (will be overridden by system environment variables)
+	var cfg Config
+
+	// Load .env if present (falls back to OS env if not found).
 	if err := godotenv.Load(); err != nil {
 		log.Println("Note: .env file not found or failed to load. Using system environment variables.")
 	}
 
-	var cfg Config
-	err := envconfig.Process("", &cfg)
-	if err != nil {
+	// Populate cfg from environment variables.
+	if err := envconfig.Process("", &cfg); err != nil {
 		log.Fatalf("Error loading configuration: %v", err)
 	}
 
