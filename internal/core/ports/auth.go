@@ -2,7 +2,7 @@ package ports
 
 import (
 	"context"
-	
+
 	"github.com/mitcheltastic/ManproBackend/internal/core/domain"
 )
 
@@ -38,7 +38,8 @@ type AuthService interface {
 	Login(ctx context.Context, req domain.LoginRequest) (*domain.AuthResponse, error)
 
 	// StartPasswordReset initiates the forgot password flow (sends email/saves code).
-	StartPasswordReset(ctx context.Context, req domain.ForgotPasswordRequest) error
+	// FIX: Updated return signature to include the generated code string for local debugging.
+	StartPasswordReset(ctx context.Context, req domain.ForgotPasswordRequest) (string, error)
 
 	// ResetPassword validates the code and updates the password.
 	ResetPassword(ctx context.Context, req domain.ResetPasswordRequest) (*domain.AuthResponse, error)

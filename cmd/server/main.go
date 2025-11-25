@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"runtime"
-	
+
 	"github.com/gin-gonic/gin"
 	"github.com/pressly/goose/v3"
 	"github.com/mitcheltastic/ManproBackend/config"
-	// **FIXED ALIAS:** Renamed to 'dbimpl' to correctly access the package
 	dbimpl "github.com/mitcheltastic/ManproBackend/internal/infrastructure/database" 
 	fbclient "github.com/mitcheltastic/ManproBackend/internal/infrastructure/firebase"
 	router "github.com/mitcheltastic/ManproBackend/internal/infrastructure/router"
@@ -20,11 +18,7 @@ import (
 func runMigrations(db *sql.DB) {
 	// IMPORTANT: Goose expects the migration directory path.
 	// We use the absolute path to ensure it works regardless of where 'go run' is executed.
-	_, b, _, _ := runtime.Caller(0)
-	basepath := filepath.Dir(b) 
-
-	// Navigate up one level to the project root, then down to the migrations folder
-	migrationsDir := filepath.Join(filepath.Dir(basepath), "..", "scripts", "migrations")
+	migrationsDir := filepath.Join(".", "scripts", "migrations")
 	
 	log.Printf("Starting database migration from directory: %s", migrationsDir)
 	
@@ -70,7 +64,8 @@ func main() {
 	r := gin.Default()
 	
 	// We need to pass the database client to the router so handlers can access it
-	router.SetupRoutes(r, firebaseClient, dbClient) 
+	// FIX: Pass the 'cfg' object as the final argument
+	router.SetupRoutes(r, firebaseClient, dbClient, cfg) 
 
 	// 6. Start the Server
 	addr := fmt.Sprintf(":%s", cfg.Port)

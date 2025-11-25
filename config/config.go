@@ -9,7 +9,7 @@ import (
 
 // Config holds all application configuration settings.
 type Config struct {
-	// FIX: Use the correct variable name that matches the .env file.
+	// Firebase service account file path, used to initialize the Admin SDK.
 	FirebaseServiceKeyPath string `envconfig:"FIREBASE_SERVICE_KEY_PATH" required:"true"`
 	
 	// Server settings (e.g., port)
@@ -20,6 +20,16 @@ type Config struct {
 
 	// Flag to determine if database migrations should run on startup.
 	ShouldMigrate bool `envconfig:"SHOULD_MIGRATE" default:"false"`
+
+	// Secret key used to sign and verify local JWTs for custom authentication.
+	JWTSecret string `envconfig:"JWT_SECRET" required:"true"`
+
+	// --- NEW EMAIL CONFIG ---
+	SMTPHost string `envconfig:"SMTP_HOST" default:""`
+	SMTPPort string `envconfig:"SMTP_PORT" default:""`
+	SMTPUser string `envconfig:"SMTP_USER" default:""`
+	SMTPPass string `envconfig:"SMTP_PASS" default:""`
+	FromEmail string `envconfig:"FROM_EMAIL" default:""`
 }
 
 // LoadConfig reads configuration from .env file and environment variables.
