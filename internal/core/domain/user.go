@@ -7,14 +7,34 @@ import (
 )
 
 // User represents the core user model stored in the database (Supabase/Postgres).
-// This struct will form the basis of your 'users' table in Supabase.
 type User struct {
+	// --- CORE AUTHENTICATION FIELDS (Required for Login/Security) ---
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
-	// HashedPassword stores the bcrypt hash. We never expose the raw password.
 	HashedPassword string `json:"-"`
 	IsVerified    bool   `json:"is_verified"`
+	
+	// --- PROFILE FIELDS (The new Intertwine data) ---
+	Nickname      *string    `json:"nickname"`      // Optional
+	Gender        *string    `json:"gender"`        // M, F, Other
+	Birthdate     *time.Time `json:"birthdate"`     // Used for age calculation
+	College       *string    `json:"college"`       // e.g., "MIT"
+	Faculty       *string    `json:"faculty"`       // e.g., "Engineering"
+	Major         *string    `json:"major"`         // e.g., "Computer Science"
+	Year          *int       `json:"year"`          // Current academic year (e.g., 2024)
+	MBTI          *string    `json:"mbti"`          // Personality type
+	BloodType     *string    `json:"blood_type"`    // A, B, AB, O
+	ProfilePictureURL *string `json:"profile_picture_url"` // S3 or Storage URL for profile image
+	
+	// GalleryURLs stores up to 5 image URLs. We will use a string slice in Go.
+	// NOTE: In Postgres/Supabase, this will be stored as TEXT[] (an array of text/strings).
+	GalleryPictureURLs []string `json:"gallery_picture_urls"`
+
+	// Hobby stores up to 3 hobbies as a slice.
+	Hobby []string `json:"hobby"`
+
+	// --- METADATA FIELDS ---
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -22,7 +42,6 @@ type User struct {
 // --- Request/Input Models (DTOs) ---
 
 // RegisterRequest holds the user input for the registration endpoint.
-// The 'binding' tags are used by Gin/validator to enforce input rules.
 type RegisterRequest struct {
 	Name            string `json:"name" binding:"required,min=2,max=50"`
 	Email           string `json:"email" binding:"required,email"`
