@@ -9,30 +9,30 @@ import (
 
 // Config holds all application configuration settings.
 type Config struct {
-	// Path to the Firebase service account JSON file.
-	// Comes from .env: FIREBASE_SERVICE_KEY_JSON=./scripts/firebase-key.json
-	FirebaseServiceKeyJSON string `envconfig:"FIREBASE_SERVICE_KEY_JSON" required:"true"`
-
+	// FIX: Use the correct variable name that matches the .env file.
+	FirebaseServiceKeyPath string `envconfig:"FIREBASE_SERVICE_KEY_PATH" required:"true"`
+	
 	// Server settings (e.g., port)
 	Port string `envconfig:"PORT" default:"8080"`
 
 	// Supabase/Postgres connection string
-	// You can leave this empty for now or set a placeholder in .env.
-	DatabaseURL string `envconfig:"DATABASE_URL" default:""`
+	DatabaseURL string `envconfig:"DATABASE_URL" required:"true"`
+
+	// Flag to determine if database migrations should run on startup.
+	ShouldMigrate bool `envconfig:"SHOULD_MIGRATE" default:"false"`
 }
 
 // LoadConfig reads configuration from .env file and environment variables.
 func LoadConfig() *Config {
-	var cfg Config
-
-	// Load .env if present (falls back to OS env if not found).
+	// Load .env file first (will be overridden by system environment variables)
 	if err := godotenv.Load(); err != nil {
 		log.Println("Note: .env file not found or failed to load. Using system environment variables.")
 	}
 
-	// Populate cfg from environment variables.
-	if err := envconfig.Process("", &cfg); err != nil {
-		log.Fatalf("Error loading configuration: %v", err)
+	var cfg Config
+	err := envconfig.Process("", &cfg)
+	if err != nil {
+		log.Fatalf("Error loading configuration: required key missing value. %v", err)
 	}
 
 	return &cfg
