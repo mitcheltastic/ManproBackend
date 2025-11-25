@@ -4,31 +4,38 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	dbimpl "github.com/mitcheltastic/ManproBackend/internal/infrastructure/database" // Import for the DB Client struct
+	dbimpl "github.com/mitcheltastic/ManproBackend/internal/infrastructure/database"
 	fbclient "github.com/mitcheltastic/ManproBackend/internal/infrastructure/firebase" 
 )
 
 // SetupRoutes registers all API routes and middleware.
-// NOTE: We now accept the dbClient to pass to handlers/controllers.
+// We now accept the database client to pass to handlers/controllers.
 func SetupRoutes(r *gin.Engine, fbClient *fbclient.Client, dbClient *dbimpl.Client) {
-	// Public routes (No authentication required)
+	
+	// --- Public Routes ---
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "OK", "service": "Go Backend"})
 	})
 
-	// API Group V1
+	// --- V1 API Group ---
 	v1 := r.Group("/api/v1")
 	
-	// Protected routes (Require Firebase Authentication Middleware)
-	// Apply the middleware to all routes in this group
+	// Future: Auth Controller initialization will go here, using dbClient:
+	// authController := handler.NewAuthController(dbClient)
+
+	// Public Auth Endpoints (No token required)
+	// v1.POST("/auth/register", authController.Register)
+	// v1.POST("/auth/login", authController.Login)
+	// v1.POST("/auth/forgot-password", authController.ForgotPassword)
+
+	// Protected Routes (Require Firebase Authentication Middleware)
 	v1.Use(AuthMiddleware(fbClient))
 	{
 		// Example protected endpoint: Get User Profile
 		// This handler will only run if AuthMiddleware successfully verified the Firebase ID token
 		v1.GET("/profile", protectedProfileHandler)
 		
-		// Future CRUD APIs will go here...
-		// v1.POST("/users", userHandler.Create)
+		// Future: Authenticated endpoints like CRUD APIs will go here
 	}
 }
 
@@ -38,17 +45,17 @@ func protectedProfileHandler(c *gin.Context) {
 	// Retrieve the decoded claims injected by the AuthMiddleware
 	claims, ok := GetAuthClaims(c)
 	if !ok {
-		// Should not happen if middleware ran, but good defensive programming
+		// Should not happen if middleware ran, but defensive programming
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Authentication context missing"})
 		return
 	}
 
-	// Use the claims to return user data
+	// Return the user data retrieved from the Firebase token
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Welcome! You are authenticated.",
 		"user_id": claims.UID,
-		"email":   claims.Claims["email"], // Accessing email claim directly
-		"name":    claims.Claims["name"],   // Accessing name claim directly
+		"email":   claims.Claims["email"], 
+		"name":    claims.Claims["name"], 
 		"claims_raw": claims.Claims,
 	})
 }
